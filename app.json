@@ -1,0 +1,23 @@
+{
+  "expo": {
+    "name": "FoodLink",
+    "slug": "foodlink-v2",
+    "version": "2.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "backgroundColor": "#F7F8F5"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.foodlink.app"
+    },
+    "android": {
+      "package": "com.foodlink.app"
+    },
+    "web": {
+      "bundler": "metro"
+    }
+  }
+}
