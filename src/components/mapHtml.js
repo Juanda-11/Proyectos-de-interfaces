@@ -1,11 +1,11 @@
-// Genera la página HTML (Leaflet + OpenStreetMap) que muestran LeafletMap.js (WebView)
+// Genera la página HTML (Leaflet + datos de OpenStreetMap, teselas CARTO sin API key) que muestran LeafletMap.js (WebView)
 // y LeafletMap.web.js (iframe). No requiere API keys.
 const safe = (obj) => JSON.stringify(obj).replace(/</g, '\\u003c');
 
 export function buildMapHtml({ markers, user, center, zoom, dark, interactive, labels }) {
   const tiles = dark
     ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
-    : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+    : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
   const bg = dark ? '#0f1713' : '#dfe8e1';
   return `<!doctype html>
 <html><head>
@@ -32,7 +32,7 @@ export function buildMapHtml({ markers, user, center, zoom, dark, interactive, l
   if(!window.L){document.getElementById('err').style.display='flex';send({type:'error'});return;}
   var markers=${safe(markers)}, user=${safe(user)}, center=${safe(center)}, zoom=${zoom}, interactive=${interactive};
   var map=L.map('map',{zoomControl:false,dragging:interactive,scrollWheelZoom:interactive,doubleClickZoom:interactive,touchZoom:interactive,boxZoom:interactive,keyboard:interactive,attributionControl:true}).setView([center.lat,center.lng],zoom);
-  var layer=L.tileLayer('${tiles}',{maxZoom:19,subdomains:'abc',attribution:'&copy; OpenStreetMap${dark ? ' &copy; CARTO' : ''}'}).addTo(map);
+  var layer=L.tileLayer('${tiles}',{maxZoom:19,subdomains:'abc',attribution:'&copy; OpenStreetMap &copy; CARTO'}).addTo(map);
   var errs=0;layer.on('tileerror',function(){if(++errs===6){send({type:'error'});}});
   var byId={}, pts=[];
   markers.forEach(function(m){

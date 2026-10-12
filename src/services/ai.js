@@ -2,9 +2,10 @@ import * as ImageManipulator from 'expo-image-manipulator';
 import { API_BASE } from './config';
 
 export class AnalysisError extends Error {
-  constructor(code) {
+  constructor(code, detail) {
     super(code);
     this.code = code; // 'unavailable' | 'notFood' | 'failed'
+    this.detail = detail;
   }
 }
 
@@ -27,11 +28,20 @@ export async function analyzeFood(uri, lang) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ image: base64, mediaType: 'image/jpeg', lang }),
     });
-  } catch {
-    throw new AnalysisError('failed');
+  } catch (e) {
+    throw new AnalysisError('failed', `network: ${e.message}`);
   }
-  if (res.status === 503 || res.status === 404) throw new AnalysisError('unavailable');
-  if (!res.ok) throw new AnalysisError('failed');
+  if (res.status === 503) throw new AnalysisError('unavailable');
+  if (!res.ok) {
+    let info = '';
+    try {
+      const body = await res.json();
+      info = [body.error, body.upstreamStatus, body.detail].filter(Boolean).join(' · ');
+    } catch {
+      info = '';
+    }
+    throw new AnalysisError('failed', `HTTP ${res.status}${info ? ` · ${info}` : ''}`);
+  }
   const data = await res.json();
   if (data.isFood === false) throw new AnalysisError('notFood');
   return data;
