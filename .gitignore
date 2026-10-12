@@ -4,4 +4,6 @@ dist/
 web-build/
 .DS_Store
 npm-debug.log*
-node_modules/
+.vercel
+.env
+.env.local

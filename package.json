@@ -10,12 +10,23 @@
     "web": "expo start --web"
   },
   "dependencies": {
+    "@expo/metro-runtime": "~57.0.16",
     "@expo/vector-icons": "^15.0.3",
+    "@react-native-async-storage/async-storage": "^2.2.0",
     "expo": "^57.0.26",
+    "expo-crypto": "~57.0.3",
+    "expo-image-manipulator": "~57.0.20",
+    "expo-image-picker": "~57.0.20",
     "expo-linear-gradient": "^57.0.2",
+    "expo-location": "~57.0.20",
     "expo-status-bar": "~57.0.0",
     "react": "19.2.3",
-    "react-native": "0.86.3"
+    "react-dom": "^19.2.3",
+    "react-native": "0.86.3",
+    "react-native-qrcode-svg": "^6.3.26",
+    "react-native-svg": "^15.15.4",
+    "react-native-web": "^0.21.4",
+    "react-native-webview": "^13.16.1"
   },
   "devDependencies": {
     "babel-preset-expo": "~57.0.13"
