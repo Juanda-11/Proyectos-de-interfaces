@@ -100,7 +100,14 @@ export default function TrackingScreen() {
   );
 
   let action = null;
-  if (isCurrent) {
+  if (stage === 'collected' && isDone) {
+    action = (
+      <View style={s.successBox}>
+        <Icon name="heart" size={20} color={colors.accent} />
+        <Text style={[s.waitText, { color: colors.ink }]}>{t('tracking.completed')}</Text>
+      </View>
+    );
+  } else if (isCurrent) {
     if (stage === 'available') {
       action = isReceiver && !isDonor ? <Button label={t('detail.reserve')} icon="bookmark-outline" onPress={doReserve} /> : waiting(t('tracking.a_available'));
     } else if (stage === 'reserved') {
@@ -119,13 +126,6 @@ export default function TrackingScreen() {
         </>
       );
     }
-  } else if (stage === 'collected' && isDone) {
-    action = (
-      <View style={s.successBox}>
-        <Icon name="heart" size={20} color={colors.accent} />
-        <Text style={[s.waitText, { color: colors.ink }]}>{t('tracking.completed')}</Text>
-      </View>
-    );
   }
 
   const tone = isDone ? [colors.mint, colors.accent] : isCurrent ? [colors.orangeSoft, colors.orange] : [colors.surfaceAlt, colors.muted];
