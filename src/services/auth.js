@@ -33,7 +33,7 @@ async function seedDemoUsers() {
   };
   const seeded = [
     await mk('demo-receiver', 'Juan Pérez', 'receptor@foodlink.app', 'receiver', '300 123 4567', 'Centro, Pasto'),
-    await mk('demo-donor', 'Panadería La 14', 'donante@foodlink.app', 'donor', '300 765 4321', 'Calle 14 #22-10, Pasto'),
+    await mk('demo-donor', 'Laura Rivas', 'donante@foodlink.app', 'donor', '300 765 4321', 'Calle 14 #22-10, Pasto'),
   ];
   await saveJSON(KEYS.users, seeded);
   return seeded;

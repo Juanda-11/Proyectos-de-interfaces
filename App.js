@@ -1,5 +1,5 @@
 import React from 'react';
-import { ActivityIndicator, SafeAreaView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Platform, SafeAreaView, StatusBar as RNStatusBar, StyleSheet, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { ThemeProvider, useTheme } from './src/theme/ThemeContext';
 import { I18nProvider } from './src/i18n/I18nContext';
@@ -109,6 +109,6 @@ export default function App() {
 
 const styles = StyleSheet.create({
   outer: { flex: 1, alignItems: 'center' },
-  shell: { flex: 1, width: '100%', maxWidth: 430, overflow: 'hidden' },
+  shell: { flex: 1, width: '100%', maxWidth: 430, overflow: 'hidden', paddingTop: Platform.OS === 'android' ? RNStatusBar.currentHeight || 0 : 0 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
 });

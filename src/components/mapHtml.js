@@ -31,7 +31,7 @@ export function buildMapHtml({ markers, user, center, zoom, dark, interactive, l
   function send(o){var m=JSON.stringify(o);if(window.ReactNativeWebView){window.ReactNativeWebView.postMessage(m);}else if(window.parent!==window){window.parent.postMessage(m,'*');}}
   if(!window.L){document.getElementById('err').style.display='flex';send({type:'error'});return;}
   var markers=${safe(markers)}, user=${safe(user)}, center=${safe(center)}, zoom=${zoom}, interactive=${interactive};
-  var map=L.map('map',{zoomControl:interactive,dragging:interactive,scrollWheelZoom:interactive,doubleClickZoom:interactive,touchZoom:interactive,boxZoom:interactive,keyboard:interactive,attributionControl:true}).setView([center.lat,center.lng],zoom);
+  var map=L.map('map',{zoomControl:false,dragging:interactive,scrollWheelZoom:interactive,doubleClickZoom:interactive,touchZoom:interactive,boxZoom:interactive,keyboard:interactive,attributionControl:true}).setView([center.lat,center.lng],zoom);
   var layer=L.tileLayer('${tiles}',{maxZoom:19,subdomains:'abc',attribution:'&copy; OpenStreetMap${dark ? ' &copy; CARTO' : ''}'}).addTo(map);
   var errs=0;layer.on('tileerror',function(){if(++errs===6){send({type:'error'});}});
   var byId={}, pts=[];

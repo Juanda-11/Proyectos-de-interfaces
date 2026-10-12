@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useStyles, useTheme } from '../theme/ThemeContext';
 import { useI18n } from '../i18n/I18nContext';
@@ -10,7 +10,6 @@ import { computeImpact } from '../services/donations';
 import { formatDate } from '../utils';
 import { useFeedback } from '../components/Feedback';
 import { Avatar, Button, Header, Icon, IconButton, Pill, Screen } from '../components/ui';
-import { Pressable } from 'react-native';
 
 const makeStyles = (c) =>
   StyleSheet.create({
@@ -70,8 +69,8 @@ export default function ProfileScreen() {
         <Text style={s.name}>{user.name}</Text>
         <Text style={s.email}>{user.email}</Text>
         <View style={s.pills}>
-          <Pill tone="neutral" icon={user.role === 'donor' ? 'gift-outline' : 'hand-left-outline'} style={{ backgroundColor: 'rgba(255,255,255,.92)' }}>{t(`profile.${user.role}`)}</Pill>
-          <Pill tone="green" icon="shield-checkmark-outline" style={{ backgroundColor: colors.lime }}>{t('profile.verified')}</Pill>
+          <Pill tone="light" icon={user.role === 'donor' ? 'gift-outline' : 'hand-left-outline'}>{t(`profile.${user.role}`)}</Pill>
+          <Pill tone="lime" icon="shield-checkmark-outline">{t('profile.verified')}</Pill>
         </View>
         <Text style={s.since}>{t('profile.memberSince', { date: formatDate(user.createdAt, lang) })}</Text>
       </LinearGradient>

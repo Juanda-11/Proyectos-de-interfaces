@@ -18,6 +18,8 @@ export function Pill({ children, tone = 'green', icon, style }) {
     purple: [c.purpleSoft, c.purple],
     blue: [c.blueSoft, c.blue],
     neutral: [c.surfaceAlt, c.muted],
+    light: ['rgba(255,255,255,.92)', '#0D3D29'],
+    lime: [c.lime, '#0D3D29'],
   };
   const [bg, fg] = map[tone] || map.green;
   return (

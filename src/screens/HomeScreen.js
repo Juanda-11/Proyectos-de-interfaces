@@ -90,7 +90,7 @@ export default function HomeScreen() {
       <Animated.View style={{ opacity: fade }}>
         <LinearGradient colors={[colors.heroFrom, colors.heroTo]} style={s.hero}>
           <View style={s.heroLeaf}><Icon name="leaf" size={56} color="#DDF5B2" /></View>
-          <Pill tone="neutral" icon="sparkles-outline" style={{ backgroundColor: 'rgba(255,255,255,.92)' }}>FoodLink IA</Pill>
+          <Pill tone="light" icon="sparkles-outline">FoodLink IA</Pill>
           <Text style={s.heroTitle}>{t(isDonor ? 'home.heroDonorTitle' : 'home.heroReceiverTitle')}</Text>
           <Text style={s.heroBody}>{t(isDonor ? 'home.heroDonorBody' : 'home.heroReceiverBody')}</Text>
           <Button
