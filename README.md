@@ -87,7 +87,7 @@ EXPO_PUBLIC_API_URL=https://tu-proyecto.vercel.app npm start
 
 - **Cuentas y datos**: se guardan en el dispositivo (AsyncStorage / localStorage) con contraseñas cifradas (SHA-256 + sal). Es adecuado para la demostración académica; para producción real se debe usar un backend de autenticación.
 - **Privacidad de las fotos**: la imagen se reduce en el dispositivo, se envía a `/api/analyze` y no se almacena; solo se guarda una miniatura en la donación.
-- **Mapa**: teselas de CARTO con datos de OpenStreetMap (claro y oscuro); el servidor público de OSM bloquea peticiones sin Referer y muestra "API key required". Requiere conexión a internet.
+- **Mapa**: teselas de Esri (principal), CARTO y OpenStreetMap como respaldo automático, sin API key (claro y oscuro). Requiere conexión a internet.
 - **Accesibilidad**: roles y etiquetas ARIA en botones, pestañas y campos; contraste revisado en ambos temas.
 
 ## Scripts

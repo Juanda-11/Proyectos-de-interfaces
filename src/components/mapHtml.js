@@ -1,11 +1,21 @@
-// Genera la página HTML (Leaflet + datos de OpenStreetMap, teselas CARTO sin API key) que muestran LeafletMap.js (WebView)
-// y LeafletMap.web.js (iframe). No requiere API keys.
+// Genera la página HTML (Leaflet) que muestran LeafletMap.js (WebView) y
+// LeafletMap.web.js (iframe). Teselas sin API key (Esri → CARTO → OSM, con cambio automático).
 const safe = (obj) => JSON.stringify(obj).replace(/</g, '\\u003c');
 
 export function buildMapHtml({ markers, user, center, zoom, dark, interactive, labels }) {
-  const tiles = dark
-    ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
-    : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+  // Proveedores de teselas sin API key, en orden de preferencia. Si uno falla o
+  // bloquea las peticiones, el mapa pasa solo al siguiente (ver 'tileerror' abajo).
+  const providers = dark
+    ? [
+        { layers: [{ url: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', native: 16 }, { url: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}', native: 16 }], attribution: 'Tiles &copy; Esri' },
+        { layers: [{ url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', native: 19 }], attribution: '&copy; OpenStreetMap &copy; CARTO' },
+        { layers: [{ url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', native: 19 }], attribution: '&copy; OpenStreetMap' },
+      ]
+    : [
+        { layers: [{ url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', native: 19 }], attribution: 'Tiles &copy; Esri' },
+        { layers: [{ url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', native: 19 }], attribution: '&copy; OpenStreetMap &copy; CARTO' },
+        { layers: [{ url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', native: 19 }], attribution: '&copy; OpenStreetMap' },
+      ];
   const bg = dark ? '#0f1713' : '#dfe8e1';
   return `<!doctype html>
 <html><head>
@@ -32,8 +42,19 @@ export function buildMapHtml({ markers, user, center, zoom, dark, interactive, l
   if(!window.L){document.getElementById('err').style.display='flex';send({type:'error'});return;}
   var markers=${safe(markers)}, user=${safe(user)}, center=${safe(center)}, zoom=${zoom}, interactive=${interactive};
   var map=L.map('map',{zoomControl:false,dragging:interactive,scrollWheelZoom:interactive,doubleClickZoom:interactive,touchZoom:interactive,boxZoom:interactive,keyboard:interactive,attributionControl:true}).setView([center.lat,center.lng],zoom);
-  var layer=L.tileLayer('${tiles}',{maxZoom:19,subdomains:'abc',attribution:'&copy; OpenStreetMap &copy; CARTO'}).addTo(map);
-  var errs=0;layer.on('tileerror',function(){if(++errs===6){send({type:'error'});}});
+  var providers=${safe(providers)}, pIdx=0, active=[], errs=0;
+  function useProvider(i){
+    active.forEach(function(l){map.removeLayer(l);});active=[];errs=0;
+    var p=providers[i];
+    p.layers.forEach(function(cfg){
+      var l=L.tileLayer(cfg.url,{maxZoom:19,maxNativeZoom:cfg.native,subdomains:'abc',attribution:p.attribution,referrerPolicy:'origin'}).addTo(map);
+      l.on('tileerror',function(){
+        if(++errs===4){ if(i+1<providers.length){pIdx=i+1;useProvider(pIdx);}else{send({type:'error'});} }
+      });
+      active.push(l);
+    });
+  }
+  useProvider(0);
   var byId={}, pts=[];
   markers.forEach(function(m){
     var html='<div class="pin" id="pin-'+m.id+'" style="background:'+m.color+'"><span>'+(m.label||'')+'</span></div>';
