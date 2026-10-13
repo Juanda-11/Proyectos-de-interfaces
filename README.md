@@ -11,7 +11,7 @@ Una sola base de código (React Native + Expo) que corre en **iPhone, Android y 
 | **Acceso** | Inicio de sesión con dos perfiles (**Recibir** / **Donar**) y registro con correo. Cuentas demo incluidas. |
 | **Tema** | Claro / oscuro / sistema. Botón rápido en la pantalla de inicio y opción en Configuración. |
 | **Idioma** | Español / English, en el login y en Perfil → Configuración. Se recuerda entre sesiones. |
-| **Análisis con IA** | Toma una foto o súbela de la galería: la IA (Claude, visión) identifica el alimento, categoría, cantidad, estado, vida útil, alérgenos y consejos de conservación. El usuario revisa y publica. |
+| **Análisis con IA** | Toma una foto o súbela de la galería: la IA (Gemini o Claude, visión) identifica el alimento, categoría, cantidad, estado, vida útil, alérgenos y consejos de conservación. El usuario revisa y publica. |
 | **Mapa real** | OpenStreetMap + Leaflet (sin API keys), con tu ubicación, marcadores por estado y detalle al tocar. |
 | **Seguimiento** | Cuatro etapas (publicada → reservada → en camino → entregada) que se muestran **una a una**, con barra animada, etapas futuras bloqueadas y cierre de entrega con **código/QR**. |
 | **Perfil** | Datos personales editables, estadísticas, configuración, seguridad (cambiar contraseña, eliminar cuenta), ayuda con FAQ y cierre de sesión. |
@@ -68,8 +68,11 @@ Sin clave de IA la app funciona igual: al escanear, avisa que la IA no está con
 1. Entra a [vercel.com/new](https://vercel.com/new) e **importa este repositorio de GitHub**.
 2. Vercel lee `vercel.json` automáticamente (build: `npx expo export --platform web`, salida: `dist`). No cambies nada.
 3. En **Settings → Environment Variables** agrega:
-   - `ANTHROPIC_API_KEY` → tu clave de [console.anthropic.com](https://console.anthropic.com) (solo servidor, no se expone al navegador).
-   - *(opcional)* `ANTHROPIC_MODEL` → por defecto `claude-haiku-5-5`.
+   - **Recomendado (gratis):** `GEMINI_API_KEY` → clave de [Google AI Studio](https://aistudio.google.com/apikey) (plan gratuito con visión).
+   - *Alternativa de pago:* `ANTHROPIC_API_KEY` → clave de [console.anthropic.com](https://console.anthropic.com).
+   - Si están las dos se usa Gemini; se puede forzar con `AI_PROVIDER=gemini` o `anthropic`. Opcionales: `GEMINI_MODEL`, `ANTHROPIC_MODEL`.
+   - Las claves solo viven en el servidor (nunca en el navegador ni en el repositorio). Tras agregarlas, haz **Redeploy**.
+   - Comprueba abriendo `https://TU-APP.vercel.app/api/analyze`: debe mostrar `"configured": true` y el proveedor.
 4. **Deploy**. Cada `git push` a la rama principal redepliega; las ramas y PR generan *preview deployments*.
 
 ### App en el celular apuntando al despliegue

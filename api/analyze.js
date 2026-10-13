@@ -1,8 +1,62 @@
-// Función serverless de Vercel: analiza la foto de un alimento con Claude (visión).
-// Requiere la variable de entorno ANTHROPIC_API_KEY. La clave nunca llega al cliente.
+// Función serverless de Vercel: analiza la foto de un alimento con un modelo de visión.
+// Proveedores (la clave nunca llega al cliente):
+//   - Gemini  → variable GEMINI_API_KEY (tiene plan gratuito en Google AI Studio)
+//   - Claude  → variable ANTHROPIC_API_KEY
+// Si están las dos se usa Gemini; se puede forzar con AI_PROVIDER=gemini|anthropic.
 
-// Se prueban en orden hasta que uno exista para la clave configurada.
-const MODELS = [process.env.ANTHROPIC_MODEL, 'claude-haiku-5-5', 'claude-sonnet-5-5', 'claude-haiku-4-5', 'claude-sonnet-4-5'].filter(Boolean);
+const PROVIDERS = {
+  gemini: {
+    key: () => process.env.GEMINI_API_KEY,
+    // Se prueban en orden hasta que uno exista para la clave configurada.
+    models: () => [process.env.GEMINI_MODEL, 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-flash-latest'].filter(Boolean),
+  },
+  anthropic: {
+    key: () => process.env.ANTHROPIC_API_KEY,
+    models: () => [process.env.ANTHROPIC_MODEL, 'claude-haiku-5-5', 'claude-sonnet-5-5', 'claude-haiku-4-5', 'claude-sonnet-4-5'].filter(Boolean),
+  },
+};
+
+function pickProvider() {
+  const forced = process.env.AI_PROVIDER;
+  if (forced && PROVIDERS[forced]?.key()) return forced;
+  return ['gemini', 'anthropic'].find((name) => PROVIDERS[name].key()) || null;
+}
+
+// Cada llamador devuelve { ok, status, text?, detail? }.
+async function callGemini({ model, apiKey, system, image, mediaType }) {
+  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', 'x-goog-api-key': apiKey },
+    body: JSON.stringify({
+      systemInstruction: { parts: [{ text: system }] },
+      contents: [{ role: 'user', parts: [{ inline_data: { mime_type: mediaType, data: image } }, { text: 'Analyze this food photo and return the JSON.' }] }],
+      generationConfig: { responseMimeType: 'application/json', temperature: 0.2, maxOutputTokens: 2048 },
+    }),
+  });
+  if (!response.ok) return { ok: false, status: response.status, detail: await response.text() };
+  const data = await response.json();
+  const text = (data.candidates?.[0]?.content?.parts || []).map((p) => p.text || '').join('');
+  if (!text) return { ok: false, status: 502, detail: `empty response (${data.promptFeedback?.blockReason || data.candidates?.[0]?.finishReason || 'unknown'})` };
+  return { ok: true, text };
+}
+
+async function callAnthropic({ model, apiKey, system, image, mediaType }) {
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
+    body: JSON.stringify({
+      model,
+      max_tokens: 600,
+      system,
+      messages: [{ role: 'user', content: [{ type: 'image', source: { type: 'base64', media_type: mediaType, data: image } }, { type: 'text', text: 'Analyze this food photo and return the JSON.' }] }],
+    }),
+  });
+  if (!response.ok) return { ok: false, status: response.status, detail: await response.text() };
+  const data = await response.json();
+  return { ok: true, text: (data.content || []).filter((b) => b.type === 'text').map((b) => b.text).join('') };
+}
+
+const CALLERS = { gemini: callGemini, anthropic: callAnthropic };
 const MAX_BASE64_CHARS = 6 * 1024 * 1024; // ~4.5 MB de imagen
 const CATEGORIES = ['bakery', 'fruits', 'vegetables', 'meals', 'dairy', 'other'];
 
@@ -60,11 +114,11 @@ module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(204).end();
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const provider = pickProvider();
   // GET: diagnóstico rápido (abre /api/analyze en el navegador).
-  if (req.method === 'GET') return res.status(200).json({ configured: !!apiKey, models: MODELS });
+  if (req.method === 'GET') return res.status(200).json({ configured: !!provider, provider, models: provider ? PROVIDERS[provider].models() : [] });
   if (req.method !== 'POST') return res.status(405).json({ error: 'method_not_allowed' });
-  if (!apiKey) return res.status(503).json({ error: 'ai_not_configured' });
+  if (!provider) return res.status(503).json({ error: 'ai_not_configured' });
 
   const body = typeof req.body === 'string' ? safeParse(req.body) : req.body;
   const { image, mediaType = 'image/jpeg', lang = 'es' } = body || {};
@@ -73,40 +127,19 @@ module.exports = async function handler(req, res) {
   if (!['image/jpeg', 'image/png', 'image/webp'].includes(mediaType)) return res.status(400).json({ error: 'bad_media_type' });
 
   const cleanImage = image.replace(/^data:image\/[a-z+.-]+;base64,/i, '');
-  const payload = (model) => ({
-    model,
-    max_tokens: 600,
-    system: SYSTEM(lang === 'en' ? 'en' : 'es'),
-    messages: [
-      {
-        role: 'user',
-        content: [
-          { type: 'image', source: { type: 'base64', media_type: mediaType, data: cleanImage } },
-          { type: 'text', text: 'Analyze this food photo and return the JSON.' },
-        ],
-      },
-    ],
-  });
+  const system = SYSTEM(lang === 'en' ? 'en' : 'es');
+  const apiKey = PROVIDERS[provider].key();
 
   try {
     let last = null;
-    for (const model of MODELS) {
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
-        body: JSON.stringify(payload(model)),
-      });
-      if (response.ok) {
-        const data = await response.json();
-        const text = (data.content || []).filter((b) => b.type === 'text').map((b) => b.text).join('');
-        return res.status(200).json(normalize(extractJson(text)));
-      }
-      const detail = await response.text();
-      console.error('anthropic error', model, response.status, detail);
-      last = { status: response.status, detail: detail.slice(0, 300), model };
-      if (response.status !== 404) break; // solo se prueba otro modelo si este no existe
+    for (const model of PROVIDERS[provider].models()) {
+      const result = await CALLERS[provider]({ model, apiKey, system, image: cleanImage, mediaType });
+      if (result.ok) return res.status(200).json(normalize(extractJson(result.text)));
+      console.error(provider, 'error', model, result.status, result.detail);
+      last = { status: result.status, detail: String(result.detail).slice(0, 300) };
+      if (result.status !== 404) break; // solo se prueba otro modelo si este no existe
     }
-    return res.status(502).json({ error: 'upstream_error', upstreamStatus: last?.status, detail: last?.detail });
+    return res.status(502).json({ error: 'upstream_error', provider, upstreamStatus: last?.status, detail: last?.detail });
   } catch (err) {
     console.error('analyze failed', err);
     return res.status(500).json({ error: 'analysis_failed', detail: String(err.message || err) });
