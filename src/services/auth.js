@@ -21,3 +21,19 @@ export async function restoreSession() {
     throw e;
   }
 }
+
+export async function register({ name, email, password, role }) {
+  const { token, user } = await api.post('/auth/register', { name, email, password, role }, { auth: false });
+  await setToken(token);
+  return user;
+}
+
+export async function login({ email, password, role }) {
+  const { token, user } = await api.post('/auth/login', { email, password, role }, { auth: false });
+  await setToken(token);
+  return user;
+}
+
+export async function logout() {
+  await clearToken();
+}
