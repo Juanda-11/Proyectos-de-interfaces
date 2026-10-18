@@ -2,6 +2,7 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useR
 import { Animated, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useStyles } from '../theme/ThemeContext';
 import { useI18n } from '../i18n/I18nContext';
+import { errorKey } from '../services/errors';
 import { Button, Icon } from './ui';
 
 // Diálogos de confirmación y avisos (toast) multiplataforma.
@@ -50,7 +51,10 @@ export function FeedbackProvider({ children }) {
   );
   useEffect(() => () => clearTimeout(timer.current), []);
 
-  const value = useMemo(() => ({ confirm, toast }), [confirm, toast]);
+  // Muestra un error de la API con el texto traducido (red, sesión, reglas de negocio...).
+  const toastError = useCallback((error) => toast(t(errorKey(error)), 'alert-circle'), [toast, t]);
+
+  const value = useMemo(() => ({ confirm, toast, toastError }), [confirm, toast, toastError]);
 
   return (
     <FeedbackContext.Provider value={value}>
@@ -58,7 +62,7 @@ export function FeedbackProvider({ children }) {
       {toastMsg ? (
         <Animated.View pointerEvents="none" style={[s.toastWrap, { opacity }]}>
           <View style={s.toast}>
-            <Icon name={toastMsg.icon} size={18} color="#7BE3A8" />
+            <Icon name={toastMsg.icon} size={18} color={toastMsg.icon === 'alert-circle' ? '#FF9B9B' : '#7BE3A8'} />
             <Text style={s.toastText}>{toastMsg.message}</Text>
           </View>
         </Animated.View>
