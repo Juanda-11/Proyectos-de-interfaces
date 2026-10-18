@@ -37,3 +37,16 @@ export async function login({ email, password, role }) {
 export async function logout() {
   await clearToken();
 }
+
+export async function updateProfile(patch) {
+  return (await api.patch('/auth/me', patch)).user;
+}
+
+export async function changePassword(current, next) {
+  await api.post('/auth/password', { current, next });
+}
+
+export async function deleteAccount() {
+  await api.delete('/auth/me');
+  await clearToken();
+}
