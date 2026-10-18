@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
-import { Text } from 'react-native';
+import { Text, View } from 'react-native';
 import { useI18n } from '../i18n/I18nContext';
 import { useAuth } from '../context/AuthContext';
 import { useRouter } from '../navigation/Router';
 import { useFeedback } from '../components/Feedback';
 import { Avatar, Button, Field, Header, Screen } from '../components/ui';
-import { View } from 'react-native';
 
 export default function PersonalScreen() {
   const { t } = useI18n();
