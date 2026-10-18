@@ -5,7 +5,7 @@ import { useStyles, useTheme } from '../theme/ThemeContext';
 import { useI18n } from '../i18n/I18nContext';
 import { useAuth } from '../context/AuthContext';
 import { DEMO_ACCOUNTS } from '../services/auth';
-import { Button, Field, Icon, IconButton, Segmented } from '../components/ui';
+import { Button, Field, Icon, Segmented } from '../components/ui';
 
 const makeStyles = (c) =>
   StyleSheet.create({
