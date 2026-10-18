@@ -5,6 +5,7 @@ import * as backend from '../services/donationsApi';
 
 const DataContext = createContext(null);
 const POLL_MS = 15000;
+const EMPTY = [];
 
 // Los datos viven en el backend: aquí se cargan, se refrescan cada pocos segundos
 // (así donante y receptor ven los cambios del otro) y se exponen las acciones.
@@ -12,8 +13,10 @@ export function DataProvider({ children }) {
   const { user } = useAuth();
   const [donations, setDonations] = useState([]);
   const [notifications, setNotifications] = useState([]);
-  const [ready, setReady] = useState(false);
+  const [loadedFor, setLoadedFor] = useState(null); // id del usuario cuyos datos ya se intentaron cargar
   const [error, setError] = useState(null);
+  const userId = user ? user.id : null;
+  const userIdRef = useRef(userId);
 
   const refresh = useCallback(async () => {
     try {
@@ -24,21 +27,14 @@ export function DataProvider({ children }) {
     } catch (e) {
       setError(e);
     } finally {
-      setReady(true);
+      setLoadedFor(userIdRef.current);
     }
   }, []);
 
-  const userId = user ? user.id : null;
   const active = useRef(true);
   useEffect(() => {
-    if (!userId) {
-      setDonations([]);
-      setNotifications([]);
-      setError(null);
-      setReady(true);
-      return undefined;
-    }
-    setReady(false);
+    userIdRef.current = userId;
+    if (!userId) return undefined;
     refresh();
     const timer = setInterval(() => active.current && refresh(), POLL_MS);
     const sub = AppState.addEventListener('change', (state) => {
@@ -96,9 +92,12 @@ export function DataProvider({ children }) {
     await refresh();
   }, [refresh]);
 
+  // Sin sesión no se exponen datos (ni de una cuenta anterior); 'ready' espera la primera carga.
+  const signedIn = !!userId;
+  const ready = !signedIn || loadedFor === userId;
   const value = useMemo(
-    () => ({ donations, notifications, ready, error, refresh, publish, reserve, startPickup, confirmDelivery, cancel, markAllRead, resetDemo }),
-    [donations, notifications, ready, error, refresh, publish, reserve, startPickup, confirmDelivery, cancel, markAllRead, resetDemo]
+    () => ({ donations: signedIn ? donations : EMPTY, notifications: signedIn ? notifications : EMPTY, ready, error: signedIn ? error : null, refresh, publish, reserve, startPickup, confirmDelivery, cancel, markAllRead, resetDemo }),
+    [signedIn, donations, notifications, ready, error, refresh, publish, reserve, startPickup, confirmDelivery, cancel, markAllRead, resetDemo]
   );
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
 }
