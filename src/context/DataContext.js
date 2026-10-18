@@ -71,3 +71,36 @@ export function DataProvider({ children }) {
   const reserve = useCallback((donation) => run(() => backend.reserveDonation(donation.id)), [run]);
   const startPickup = useCallback((donation) => run(() => backend.startPickup(donation.id)), [run]);
   const cancel = useCallback((donation) => run(() => backend.cancelDonation(donation.id)), [run]);
+
+  // El receptor debe escribir el código del donante: devuelve false si no coincide.
+  const confirmDelivery = useCallback(
+    async (donation, code) => {
+      try {
+        await run(() => backend.deliverDonation(donation.id, code));
+        return true;
+      } catch (e) {
+        if (e.code === 'wrong_code') return false;
+        throw e;
+      }
+    },
+    [run]
+  );
+
+  const markAllRead = useCallback(async () => {
+    await backend.markNotificationsRead();
+    setNotifications((list) => list.map((n) => ({ ...n, read: true })));
+  }, []);
+
+  const resetDemo = useCallback(async () => {
+    await backend.resetDemoData();
+    await refresh();
+  }, [refresh]);
+
+  const value = useMemo(
+    () => ({ donations, notifications, ready, error, refresh, publish, reserve, startPickup, confirmDelivery, cancel, markAllRead, resetDemo }),
+    [donations, notifications, ready, error, refresh, publish, reserve, startPickup, confirmDelivery, cancel, markAllRead, resetDemo]
+  );
+  return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
+}
+
+export const useData = () => useContext(DataContext);
