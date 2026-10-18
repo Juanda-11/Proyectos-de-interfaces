@@ -30,7 +30,7 @@ export const KEYS = {
   theme: 'foodlink.theme',
   lang: 'foodlink.lang',
   users: 'foodlink.users',
-  session: 'foodlink.session',
+  token: 'foodlink.token',
   donations: 'foodlink.donations.v3',
   notifications: 'foodlink.notifications.v3',
   prefs: 'foodlink.prefs',
