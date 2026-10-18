@@ -6,7 +6,7 @@ import { useData } from '../context/DataContext';
 import { useRouter } from '../navigation/Router';
 import { KEYS, loadJSON, saveJSON } from '../services/storage';
 import { useFeedback } from '../components/Feedback';
-import { Button, Card, Header, Icon, Screen, Segmented } from '../components/ui';
+import { Button, Card, Header, Screen, Segmented } from '../components/ui';
 
 const makeStyles = (c) =>
   StyleSheet.create({
