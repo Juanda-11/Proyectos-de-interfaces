@@ -17,3 +17,18 @@ describe('timeAgo', () => {
     expect(timeAgo(new Date(Date.now() + 60000).toISOString(), t)).toBe('notif.justNow');
   });
 });
+
+describe('formatDateTime y formatDate', () => {
+  const iso = '2026-10-12T18:23:00.000Z';
+
+  test('devuelve texto en español e inglés', () => {
+    expect(formatDateTime(iso, 'es')).toMatch(/oct/i);
+    expect(formatDateTime(iso, 'en')).toMatch(/Oct/);
+    expect(formatDate(iso, 'en')).toMatch(/October 2026/);
+    expect(formatDate(iso, 'es')).toMatch(/octubre de 2026/);
+  });
+  test('valores vacíos', () => {
+    expect(formatDateTime('', 'es')).toBe('');
+    expect(formatDateTime(null, 'es')).toBe('');
+  });
+});
