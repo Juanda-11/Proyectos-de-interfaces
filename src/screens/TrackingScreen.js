@@ -51,15 +51,19 @@ export default function TrackingScreen() {
   const item = donations.find((d) => d.id === params.id);
 
   const currentIndex = item ? Math.max(0, STAGES.indexOf(item.status === 'cancelled' ? Object.keys(item.history).filter((k) => k !== 'cancelled').pop() : item.status)) : 0;
-  const [selected, setSelected] = useState(currentIndex);
-  const [code, setCode] = useState('');
-  const [codeError, setCodeError] = useState('');
+  // La etapa elegida a mano y el código escrito valen solo para la etapa actual: al avanzar,
+  // la vista vuelve sola a la etapa nueva (estado derivado, sin efectos).
+  const [picked, setPicked] = useState({ stage: -1, index: 0 });
+  const [entry, setEntry] = useState({ stage: -1, code: '', error: '' });
+  const selected = picked.stage === currentIndex ? picked.index : currentIndex;
+  const setSelected = (index) => setPicked({ stage: currentIndex, index });
+  const code = entry.stage === currentIndex ? entry.code : '';
+  const codeError = entry.stage === currentIndex ? entry.error : '';
+  const setCode = (value) => setEntry({ stage: currentIndex, code: value, error: '' });
+  const setCodeError = (error) => setEntry({ stage: currentIndex, code, error });
   const slide = useRef(new Animated.Value(1)).current;
 
-  // Al avanzar de etapa, la vista salta automáticamente a la nueva etapa.
-  useEffect(() => { setSelected(currentIndex); setCode(''); setCodeError(''); }, [currentIndex]);
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- Animated.Value.setValue no es estado de React
     slide.setValue(0);
     Animated.timing(slide, { toValue: 1, duration: 320, useNativeDriver: true }).start();
   }, [selected, slide]);
@@ -121,7 +125,7 @@ export default function TrackingScreen() {
         </>
       ) : (
         <>
-          <Field label={t('tracking.code')} icon="key-outline" value={code} onChangeText={(v) => { setCode(v); setCodeError(''); }} placeholder={t('tracking.codePh')} autoCapitalize="characters" error={codeError} style={{ marginBottom: 0 }} />
+          <Field label={t('tracking.code')} icon="key-outline" value={code} onChangeText={setCode} placeholder={t('tracking.codePh')} autoCapitalize="characters" error={codeError} style={{ marginBottom: 0 }} />
           <Text style={s.hint}>{t('tracking.codeHint')}</Text>
           <Button label={t('tracking.a_onTheWay')} icon="checkmark-done-outline" onPress={doConfirmCode} disabled={!code.trim()} />
         </>
