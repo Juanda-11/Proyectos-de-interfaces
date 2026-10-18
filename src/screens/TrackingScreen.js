@@ -59,6 +59,7 @@ export default function TrackingScreen() {
   // Al avanzar de etapa, la vista salta automáticamente a la nueva etapa.
   useEffect(() => { setSelected(currentIndex); setCode(''); setCodeError(''); }, [currentIndex]);
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Animated.Value.setValue no es estado de React
     slide.setValue(0);
     Animated.timing(slide, { toValue: 1, duration: 320, useNativeDriver: true }).start();
   }, [selected, slide]);
