@@ -32,3 +32,40 @@ async function fetchWithTimeout(url, options) {
     clearTimeout(timer);
   }
 }
+
+// Petición JSON al backend. Añade el token, interpreta { error, details } y avisa si la sesión expira.
+export async function request(method, path, { body, auth = true } = {}) {
+  if (!BACKEND_CONFIGURED) throw new ApiError('backend_not_configured');
+  const headers = { 'Content-Type': 'application/json' };
+  const token = auth ? await getToken() : null;
+  if (token) headers.Authorization = `Bearer ${token}`;
+
+  const res = await fetchWithTimeout(`${API_BASE}/api${path}`, {
+    method,
+    headers,
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
+
+  let data = null;
+  try {
+    data = await res.json();
+  } catch {
+    // Respuesta que no es JSON (p. ej. la web sirviendo index.html porque falta el backend).
+    throw new ApiError('bad_response', { status: res.status });
+  }
+  if (!res.ok) {
+    if (res.status === 401 && token) {
+      await clearToken();
+      if (onUnauthorized) onUnauthorized();
+    }
+    throw new ApiError(data.error || 'server_error', { status: res.status, details: data.details });
+  }
+  return data;
+}
+
+export const api = {
+  get: (path, options) => request('GET', path, options),
+  post: (path, body, options) => request('POST', path, { ...options, body }),
+  patch: (path, body, options) => request('PATCH', path, { ...options, body }),
+  delete: (path, options) => request('DELETE', path, options),
+};
