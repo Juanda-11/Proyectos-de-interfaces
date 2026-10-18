@@ -5,7 +5,7 @@ import { useI18n } from '../i18n/I18nContext';
 import { useAuth } from '../context/AuthContext';
 import { useRouter } from '../navigation/Router';
 import { useFeedback } from '../components/Feedback';
-import { Button, Card, Field, Header, Icon, Screen, SectionTitle } from '../components/ui';
+import { Button, Field, Header, Icon, Screen, SectionTitle } from '../components/ui';
 
 const makeStyles = (c) =>
   StyleSheet.create({
