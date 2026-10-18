@@ -50,3 +50,24 @@ export function DataProvider({ children }) {
       sub.remove();
     };
   }, [userId, refresh]);
+
+  // Reemplaza (o agrega) una donación devuelta por el backend sin esperar al siguiente refresco.
+  const upsert = useCallback((donation) => {
+    setDonations((list) => (list.some((d) => d.id === donation.id) ? list.map((d) => (d.id === donation.id ? donation : d)) : [donation, ...list]));
+    return donation;
+  }, []);
+  const syncNotifications = useCallback(() => backend.listNotifications().then(setNotifications).catch(() => {}), []);
+
+  const run = useCallback(
+    async (action) => {
+      const donation = upsert(await action());
+      syncNotifications();
+      return donation;
+    },
+    [upsert, syncNotifications]
+  );
+
+  const publish = useCallback((draft) => run(() => backend.createDonation(draft)), [run]);
+  const reserve = useCallback((donation) => run(() => backend.reserveDonation(donation.id)), [run]);
+  const startPickup = useCallback((donation) => run(() => backend.startPickup(donation.id)), [run]);
+  const cancel = useCallback((donation) => run(() => backend.cancelDonation(donation.id)), [run]);
