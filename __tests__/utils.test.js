@@ -32,3 +32,17 @@ describe('formatDateTime y formatDate', () => {
     expect(formatDateTime(null, 'es')).toBe('');
   });
 });
+
+describe('greetingKey', () => {
+  afterEach(() => jest.useRealTimers());
+  const at = (hour) => {
+    jest.useFakeTimers().setSystemTime(new Date(2026, 9, 12, hour, 0, 0));
+    return greetingKey();
+  };
+
+  test('según la hora del día', () => {
+    expect(at(8)).toBe('greeting.morning');
+    expect(at(15)).toBe('greeting.afternoon');
+    expect(at(21)).toBe('greeting.evening');
+  });
+});
