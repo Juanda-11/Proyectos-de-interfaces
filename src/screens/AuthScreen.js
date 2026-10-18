@@ -80,10 +80,16 @@ export default function AuthScreen() {
     try {
       await action();
     } catch (err) {
+      const roleName = (r) => t(r === 'donor' ? 'role.donorLong' : 'role.receiverLong').toLowerCase();
       const map = {
-        exists: t('auth.errExists'),
-        credentials: t('auth.errCredentials'),
-        role: t('auth.errRole', { role: t(err.extra === 'donor' ? 'role.donorLong' : 'role.receiverLong').toLowerCase() }),
+        email_taken: t('auth.errExists'),
+        invalid_credentials: t('auth.errCredentials'),
+        role_mismatch: t('auth.errRole', { role: roleName(err.details && err.details.role) }),
+        network: t('errors.network'),
+        timeout: t('errors.network'),
+        backend_not_configured: t('errors.backend'),
+        bad_response: t('errors.backend'),
+        rate_limited: t('errors.rateLimited'),
       };
       setFormError(map[err.code] || t('auth.errGeneric'));
     } finally {
