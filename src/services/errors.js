@@ -5,6 +5,7 @@ const KEYS = {
   backend_not_configured: 'errors.backend',
   bad_response: 'errors.backend',
   rate_limited: 'errors.rateLimited',
+  storage_not_configured: 'errors.storage',
   not_available: 'errors.notAvailable',
   busy: 'errors.busy',
   invalid_token: 'errors.session',
