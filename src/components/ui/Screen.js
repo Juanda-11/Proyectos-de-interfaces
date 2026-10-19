@@ -1,7 +1,17 @@
-import React, { useEffect, useRef } from 'react';
-import { Animated, ScrollView } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { Animated, RefreshControl, ScrollView } from 'react-native';
 
-export function Screen({ children, padded = true, contentStyle }) {
+// onRefresh (opcional): activa "tirar para actualizar" en el móvil.
+export function Screen({ children, padded = true, contentStyle, onRefresh }) {
+  const [refreshing, setRefreshing] = useState(false);
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await onRefresh();
+    } finally {
+      setRefreshing(false);
+    }
+  };
   const fade = useRef(new Animated.Value(0)).current;
   const lift = useRef(new Animated.Value(10)).current;
   useEffect(() => {
@@ -16,6 +26,7 @@ export function Screen({ children, padded = true, contentStyle }) {
         contentContainerStyle={[padded && { padding: 20, paddingBottom: 32 }, contentStyle]}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
+        refreshControl={onRefresh ? <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} /> : undefined}
       >
         {children}
       </ScrollView>
