@@ -27,7 +27,7 @@ async function fetchWithTimeout(url, options) {
   try {
     return await fetch(url, { ...options, signal: controller.signal });
   } catch (e) {
-    throw new ApiError(e.name === 'AbortError' ? 'timeout' : 'network');
+    throw new ApiError(e.name === 'AbortError' ? 'timeout' : 'network', { details: { url } });
   } finally {
     clearTimeout(timer);
   }
@@ -51,7 +51,7 @@ export async function request(method, path, { body, auth = true } = {}) {
     data = await res.json();
   } catch {
     // Respuesta que no es JSON (p. ej. la web sirviendo index.html porque falta el backend).
-    throw new ApiError('bad_response', { status: res.status });
+    throw new ApiError('bad_response', { status: res.status, details: { url: `${API_BASE}/api${path}`, contentType: res.headers && res.headers.get ? res.headers.get('content-type') : undefined } });
   }
   if (!res.ok) {
     if (res.status === 401 && token) {
