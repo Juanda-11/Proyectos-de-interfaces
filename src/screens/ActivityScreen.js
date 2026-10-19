@@ -31,7 +31,7 @@ export default function ActivityScreen() {
   const { colors } = useTheme();
   const { t } = useI18n();
   const { user } = useAuth();
-  const { donations, notifications } = useData();
+  const { donations, notifications, refresh } = useData();
   const { go } = useRouter();
   const [tab, setTab] = useState('active');
 
@@ -41,7 +41,7 @@ export default function ActivityScreen() {
   const list = tab === 'active' ? active : history;
 
   return (
-    <Screen>
+    <Screen onRefresh={refresh}>
       <Header
         title={t('tracking.title')}
         subtitle={t('tracking.subtitle')}
