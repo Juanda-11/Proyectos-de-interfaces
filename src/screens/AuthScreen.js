@@ -5,6 +5,7 @@ import { useStyles, useTheme } from '../theme/ThemeContext';
 import { useI18n } from '../i18n/I18nContext';
 import { useAuth } from '../context/AuthContext';
 import { DEMO_ACCOUNTS } from '../services/auth';
+import { API_BASE } from '../services/config';
 import { Button, Field, Icon, Segmented } from '../components/ui';
 
 const makeStyles = (c) =>
@@ -91,7 +92,11 @@ export default function AuthScreen() {
         bad_response: t('errors.backend'),
         rate_limited: t('errors.rateLimited'),
       };
-      setFormError(map[err.code] || t('auth.errGeneric'));
+      // Línea técnica para diagnosticar despliegues (URL del backend y estado HTTP).
+      const tech = ['network', 'timeout', 'backend_not_configured', 'bad_response'].includes(err.code)
+        ? ` [${err.code}${err.status ? ` ${err.status}` : ''} · ${API_BASE || 'EXPO_PUBLIC_API_URL vacía'}]`
+        : '';
+      setFormError((map[err.code] || t('auth.errGeneric')) + tech);
     } finally {
       setBusy(false);
     }
