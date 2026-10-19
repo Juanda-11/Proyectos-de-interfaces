@@ -195,7 +195,6 @@ export default function PublishScreen() {
             <View style={s.error} accessibilityRole="alert">
               <Text style={s.errorTitle}>{error.title}</Text>
               <Text style={s.errorBody}>{error.body}</Text>
-              {error.detail ? <Text style={[s.errorBody, { fontSize: 11, opacity: 0.7 }]} selectable>{error.detail}</Text> : null}
               <View style={s.errorRow}>
                 {error.retry ? <Button small variant="secondary" icon="refresh-outline" label={t('common.retry')} onPress={() => analyze(error.retry)} style={{ flex: 1 }} /> : null}
                 {error.manual ? <Button small variant="secondary" icon="create-outline" label={t('publish.manual')} onPress={manual} style={{ flex: 1 }} /> : null}

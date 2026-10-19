@@ -7,7 +7,7 @@ React Native + Expo: **una sola base de código para web, iPhone y Android**.
 
 > 🔗 El **backend** (API REST, base de datos e IA) está en otro repositorio:
 > [Juanda-11/Proyectos-de-interfaces-MB](https://github.com/Juanda-11/Proyectos-de-interfaces-MB).
-> Arquitectura: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) · Despliegue: [`docs/DEPLOY.md`](docs/DEPLOY.md)
+> Arquitectura: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) · Demo en línea: <https://foodlink-ashen.vercel.app>
 
 ## Funcionalidades
 | Área | Qué hace |
@@ -40,16 +40,11 @@ npm run web                   # navegador
 npm start                     # Expo Go en iPhone/Android
 ```
 
-## Desplegar en Vercel
-1. Despliega primero el backend y copia su URL.
-2. Importa este repositorio en Vercel y agrega `EXPO_PUBLIC_API_URL` con esa URL.
-3. Deploy. Detalles y solución de problemas en [`docs/DEPLOY.md`](docs/DEPLOY.md).
-
 ## Scripts
 | Comando | Descripción |
 | --- | --- |
 | `npm run web` / `npm start` | Servidor de desarrollo (web / móvil) |
-| `npm run build` | Genera `dist/` (lo que ejecuta Vercel) |
+| `npm run build` | Genera la versión web estática en `dist/` |
 | `npm run lint` | ESLint |
 | `npm test` | Pruebas con Jest |
 | `npm run format` | Prettier |

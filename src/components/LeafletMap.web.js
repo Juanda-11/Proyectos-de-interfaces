@@ -2,7 +2,7 @@ import React, { forwardRef, useEffect, useImperativeHandle, useMemo, useRef } fr
 import { StyleSheet, View } from 'react-native';
 import { buildMapHtml } from './mapHtml';
 
-// Misma interfaz que LeafletMap.js, pero con un <iframe> para la versión web (Vercel).
+// Misma interfaz que LeafletMap.js, pero con un <iframe> para la versión web.
 const LeafletMap = forwardRef(function LeafletMap(
   { markers, user, center, zoom = 14, dark, interactive = true, selectedId, onSelect, onError, labels, style },
   ref
