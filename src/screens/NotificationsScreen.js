@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
 import { useRouter } from '../navigation/Router';
 import { timeAgo } from '../utils';
+import { useFeedback } from '../components/Feedback';
 import { Button, Card, EmptyState, Header, Icon, Screen } from '../components/ui';
 
 const ICONS = { published: 'megaphone-outline', reserved: 'bookmark-outline', onTheWay: 'bicycle-outline', collected: 'checkmark-done-outline', cancelled: 'close-circle-outline' };
@@ -27,6 +28,7 @@ export default function NotificationsScreen() {
   const { user } = useAuth();
   const { notifications, markAllRead } = useData();
   const { go, back } = useRouter();
+  const { toastError } = useFeedback();
   const mine = notifications.filter((n) => n.userId === user.id);
   const allRead = mine.every((n) => n.read);
   const tone = { cancelled: [colors.redSoft, colors.red], collected: [colors.blueSoft, colors.blue], onTheWay: [colors.purpleSoft, colors.purple], reserved: [colors.orangeSoft, colors.orange], published: [colors.mint, colors.accent] };
@@ -50,7 +52,7 @@ export default function NotificationsScreen() {
       ))}
       {mine.length > 0 ? (
         <View style={{ gap: 10, marginTop: 6 }}>
-          <Button variant="secondary" label={allRead ? t('notif.allRead') : t('notif.markRead')} icon="checkmark-done-outline" disabled={allRead} onPress={() => markAllRead(user.id)} />
+          <Button variant="secondary" label={allRead ? t('notif.allRead') : t('notif.markRead')} icon="checkmark-done-outline" disabled={allRead} onPress={() => markAllRead().catch(toastError)} />
           <Button label={t('notif.goActivity')} icon="pulse-outline" onPress={() => go('activity')} />
         </View>
       ) : null}
