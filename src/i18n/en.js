@@ -9,6 +9,7 @@ export default {
     network: "Couldn't reach the server. Check your connection and try again.",
     backend: 'The FoodLink server is unavailable or not configured.',
     rateLimited: 'Too many attempts. Wait a moment and try again.',
+    storage: "The server doesn't have its database connected yet. Please tell the administrator.",
     notAvailable: 'This donation is no longer available.',
     busy: 'The donation is being updated. Please try again.',
     session: 'Your session expired. Please sign in again.',

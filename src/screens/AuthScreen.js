@@ -91,6 +91,7 @@ export default function AuthScreen() {
         backend_not_configured: t('errors.backend'),
         bad_response: t('errors.backend'),
         rate_limited: t('errors.rateLimited'),
+        storage_not_configured: t('errors.storage'),
       };
       // Línea técnica para diagnosticar despliegues (URL del backend y estado HTTP).
       const tech = ['network', 'timeout', 'backend_not_configured', 'bad_response'].includes(err.code)
