@@ -1,6 +1,6 @@
 {
-  "name": "foodlink-v2",
-  "version": "3.0.0",
+  "name": "foodlink-frontend",
+  "version": "4.0.0",
   "private": true,
   "main": "node_modules/expo/AppEntry.js",
   "scripts": {
