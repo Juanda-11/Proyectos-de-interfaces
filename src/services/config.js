@@ -1,6 +1,4 @@
-// URL del backend (repositorio Juanda-11/Proyectos-de-interfaces-MB desplegado en Vercel).
-// Se define al compilar con EXPO_PUBLIC_API_URL (en Vercel: Settings > Environment Variables + Redeploy).
-// Ya no hay API en el mismo dominio, así que sin esta variable la app avisa que falta configurarla.
+// URL del backend (repositorio Proyectos-de-interfaces-MB). Se define al compilar con EXPO_PUBLIC_API_URL.
 export const API_BASE = (process.env.EXPO_PUBLIC_API_URL || '').replace(/\/$/, '');
 export const BACKEND_CONFIGURED = !!API_BASE;
 

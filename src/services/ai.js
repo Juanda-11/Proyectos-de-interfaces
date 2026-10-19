@@ -9,7 +9,7 @@ export class AnalysisError extends Error {
   }
 }
 
-// Reduce la foto antes de enviarla (más rápido, más barato y bajo el límite de Vercel).
+// Reduce la foto antes de enviarla (más rápido, más barato y dentro del límite de tamaño del servidor).
 async function prepareImage(uri) {
   const out = await ImageManipulator.manipulateAsync(uri, [{ resize: { width: 1024 } }], {
     compress: 0.6,
