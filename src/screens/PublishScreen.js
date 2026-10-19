@@ -10,6 +10,7 @@ import { useRouter } from '../navigation/Router';
 import { CATEGORIES } from '../services/donations';
 import { AnalysisError, analyzeFood, makeThumbnail } from '../services/ai';
 import { DEFAULT_LOCATION } from '../services/config';
+import { useFeedback } from '../components/Feedback';
 import { Button, Card, Field, Header, Icon, Pill, Screen, Segmented } from '../components/ui';
 
 const makeStyles = (c) =>
@@ -70,6 +71,7 @@ export default function PublishScreen() {
   const { publish } = useData();
   const loc = useLocation();
   const { go } = useRouter();
+  const { toastError } = useFeedback();
 
   const [stage, setStage] = useState('start'); // start | analyzing | form
   const [photo, setPhoto] = useState(null);
@@ -144,8 +146,8 @@ export default function PublishScreen() {
     const base = loc.granted ? loc.coords : DEFAULT_LOCATION;
     const jitter = loc.granted ? 0 : (Math.random() - 0.5) * 0.012;
     const kg = parseFloat(String(form.kg).replace(',', '.'));
-    const donation = publish(
-      {
+    try {
+      const donation = await publish({
         title: form.title.trim(),
         category: form.category,
         qty: form.qty.trim() || '1',
@@ -158,11 +160,13 @@ export default function PublishScreen() {
         lng: base.lng + jitter,
         ai: meta.ai,
         photo: thumb,
-      },
-      user
-    );
-    setBusy(false);
-    go('published', { id: donation.id });
+      });
+      go('published', { id: donation.id });
+    } catch (e) {
+      toastError(e);
+    } finally {
+      setBusy(false);
+    }
   };
 
   const active = stage === 'start' ? 0 : stage === 'analyzing' ? 1 : 2;
