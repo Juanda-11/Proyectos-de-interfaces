@@ -19,7 +19,7 @@ export default function SecurityScreen() {
   const { colors } = useTheme();
   const { t } = useI18n();
   const { changePassword, removeAccount } = useAuth();
-  const { toast, confirm } = useFeedback();
+  const { toast, confirm, toastError } = useFeedback();
   const { back } = useRouter();
   const [form, setForm] = useState({ current: '', next: '' });
   const [errors, setErrors] = useState({});
@@ -33,8 +33,9 @@ export default function SecurityScreen() {
       await changePassword(form.current, form.next);
       setForm({ current: '', next: '' });
       toast(t('security.done'));
-    } catch {
-      setErrors({ current: t('security.errCurrent') });
+    } catch (e) {
+      if (e.code === 'wrong_current_password') setErrors({ current: t('security.errCurrent') });
+      else toastError(e);
     } finally {
       setBusy(false);
     }
@@ -42,7 +43,12 @@ export default function SecurityScreen() {
 
   const remove = async () => {
     const ok = await confirm({ title: t('security.deleteAsk'), body: t('security.deleteBody'), confirmLabel: t('security.deleteAccount'), danger: true });
-    if (ok) removeAccount();
+    if (!ok) return;
+    try {
+      await removeAccount();
+    } catch (e) {
+      toastError(e);
+    }
   };
 
   return (
