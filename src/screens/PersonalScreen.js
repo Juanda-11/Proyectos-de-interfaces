@@ -9,7 +9,7 @@ import { Avatar, Button, Field, Header, Screen } from '../components/ui';
 export default function PersonalScreen() {
   const { t } = useI18n();
   const { user, update } = useAuth();
-  const { toast } = useFeedback();
+  const { toast, toastError } = useFeedback();
   const { back } = useRouter();
   const [form, setForm] = useState({ name: user.name, phone: user.phone || '', address: user.address || '' });
   const [error, setError] = useState('');
@@ -19,10 +19,15 @@ export default function PersonalScreen() {
   const save = async () => {
     if (!form.name.trim()) return setError(t('auth.errName'));
     setBusy(true);
-    await update({ name: form.name.trim(), phone: form.phone.trim(), address: form.address.trim() });
-    setBusy(false);
-    toast(t('common.saved'));
-    back();
+    try {
+      await update({ name: form.name.trim(), phone: form.phone.trim(), address: form.address.trim() });
+      toast(t('common.saved'));
+      back();
+    } catch (e) {
+      toastError(e);
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
