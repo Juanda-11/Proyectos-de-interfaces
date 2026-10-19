@@ -6,6 +6,7 @@ import { I18nProvider } from './src/i18n/I18nContext';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { DataProvider, useData } from './src/context/DataContext';
 import { LocationProvider } from './src/context/LocationContext';
+import ErrorBoundary from './src/components/ErrorBoundary';
 import { FeedbackProvider } from './src/components/Feedback';
 import { RouterProvider, useRouter } from './src/navigation/Router';
 import { BottomNav } from './src/components/BottomNav';
@@ -96,24 +97,32 @@ function Root() {
 
 export default function App() {
   return (
-    <ThemeProvider>
-      <I18nProvider>
-        <AuthProvider>
-          <DataProvider>
-            <LocationProvider>
-              <FeedbackProvider>
-                <Root />
-              </FeedbackProvider>
-            </LocationProvider>
-          </DataProvider>
-        </AuthProvider>
-      </I18nProvider>
-    </ThemeProvider>
+    <ErrorBoundary>
+      <ThemeProvider>
+        <I18nProvider>
+          <AuthProvider>
+            <DataProvider>
+              <LocationProvider>
+                <FeedbackProvider>
+                  <Root />
+                </FeedbackProvider>
+              </LocationProvider>
+            </DataProvider>
+          </AuthProvider>
+        </I18nProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 }
 
 const styles = StyleSheet.create({
   outer: { flex: 1, alignItems: 'center' },
-  shell: { flex: 1, width: '100%', maxWidth: 430, overflow: 'hidden', paddingTop: Platform.OS === 'android' ? RNStatusBar.currentHeight || 0 : 0 },
+  shell: {
+    flex: 1,
+    width: '100%',
+    maxWidth: 430,
+    overflow: 'hidden',
+    paddingTop: Platform.OS === 'android' ? RNStatusBar.currentHeight || 0 : 0,
+  },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
 });
