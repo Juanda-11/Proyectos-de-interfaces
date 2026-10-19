@@ -46,7 +46,8 @@ export default function TrackingScreen() {
   const { t, lang } = useI18n();
   const { user } = useAuth();
   const { donations, reserve, startPickup, confirmDelivery, cancel } = useData();
-  const { confirm, toast } = useFeedback();
+  const { confirm, toast, toastError } = useFeedback();
+  const [busy, setBusy] = useState(false);
   const { params, back } = useRouter();
   const item = donations.find((d) => d.id === params.id);
 
@@ -78,16 +79,29 @@ export default function TrackingScreen() {
   const isDone = selected < currentIndex || (stage === 'collected' && item.status === 'collected');
   const at = item.history?.[stage];
 
-  const doReserve = () => { reserve(item, user); toast(t('notif.reservedBody', { title: item.title })); };
-  const doStart = () => startPickup(item);
-  const doConfirmCode = () => {
-    if (confirmDelivery(item, code)) toast(t('notif.collectedBody', { title: item.title }));
-    else setCodeError(t('tracking.wrongCode'));
+  // Ejecuta una acción del backend: evita dobles toques y muestra el error si falla.
+  const guard = async (fn) => {
+    if (busy) return;
+    setBusy(true);
+    try {
+      await fn();
+    } catch (e) {
+      toastError(e);
+    } finally {
+      setBusy(false);
+    }
   };
-  const doHandoff = () => { confirmDelivery(item, item.code); toast(t('notif.collectedBody', { title: item.title })); };
+  const doReserve = () => guard(async () => { await reserve(item); toast(t('notif.reservedBody', { title: item.title })); });
+  const doStart = () => guard(() => startPickup(item));
+  const doConfirmCode = () => guard(async () => {
+    if (await confirmDelivery(item, code)) toast(t('notif.collectedBody', { title: item.title }));
+    else setCodeError(t('tracking.wrongCode'));
+  });
+  // El donante confirma la entrega directamente (el backend no le pide código).
+  const doHandoff = () => guard(async () => { await confirmDelivery(item); toast(t('notif.collectedBody', { title: item.title })); });
   const doCancel = async () => {
     const ok = await confirm({ title: t('tracking.cancelAsk'), body: t('tracking.cancelBody'), confirmLabel: t('tracking.cancel'), danger: true });
-    if (ok) cancel(item);
+    if (ok) guard(() => cancel(item));
   };
 
   const codeCard = (
@@ -114,20 +128,20 @@ export default function TrackingScreen() {
     );
   } else if (isCurrent) {
     if (stage === 'available') {
-      action = isReceiver && !isDonor ? <Button label={t('detail.reserve')} icon="bookmark-outline" onPress={doReserve} /> : waiting(t('tracking.a_available'));
+      action = isReceiver && !isDonor ? <Button label={t('detail.reserve')} icon="bookmark-outline" onPress={doReserve} loading={busy} /> : waiting(t('tracking.a_available'));
     } else if (stage === 'reserved') {
-      action = isReceiver && item.receiverId === user.id ? <Button label={t('tracking.a_reserved')} icon="bicycle-outline" onPress={doStart} /> : waiting(t('tracking.waitPickup'));
+      action = isReceiver && item.receiverId === user.id ? <Button label={t('tracking.a_reserved')} icon="bicycle-outline" onPress={doStart} loading={busy} /> : waiting(t('tracking.waitPickup'));
     } else if (stage === 'onTheWay') {
       action = isDonor ? (
         <>
           {codeCard}
-          <Button label={t('tracking.a_onTheWay')} icon="checkmark-done-outline" onPress={doHandoff} />
+          <Button label={t('tracking.a_onTheWay')} icon="checkmark-done-outline" onPress={doHandoff} loading={busy} />
         </>
       ) : (
         <>
           <Field label={t('tracking.code')} icon="key-outline" value={code} onChangeText={setCode} placeholder={t('tracking.codePh')} autoCapitalize="characters" error={codeError} style={{ marginBottom: 0 }} />
           <Text style={s.hint}>{t('tracking.codeHint')}</Text>
-          <Button label={t('tracking.a_onTheWay')} icon="checkmark-done-outline" onPress={doConfirmCode} disabled={!code.trim()} />
+          <Button label={t('tracking.a_onTheWay')} icon="checkmark-done-outline" onPress={doConfirmCode} loading={busy} disabled={!code.trim()} />
         </>
       );
     }
