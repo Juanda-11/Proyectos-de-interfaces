@@ -6,6 +6,7 @@ import { I18nProvider } from './src/i18n/I18nContext';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { DataProvider, useData } from './src/context/DataContext';
 import { LocationProvider } from './src/context/LocationContext';
+import ErrorBoundary from './src/components/ErrorBoundary';
 import { FeedbackProvider } from './src/components/Feedback';
 import { RouterProvider, useRouter } from './src/navigation/Router';
 import { BottomNav } from './src/components/BottomNav';
@@ -25,6 +26,7 @@ import SettingsScreen from './src/screens/SettingsScreen';
 import PersonalScreen from './src/screens/PersonalScreen';
 import SecurityScreen from './src/screens/SecurityScreen';
 import HelpScreen from './src/screens/HelpScreen';
+import OfflineScreen from './src/screens/OfflineScreen';
 
 const SCREENS = {
   home: HomeScreen,
@@ -60,11 +62,13 @@ function Routes() {
 
 function Root() {
   const { colors, mode } = useTheme();
-  const { user, ready } = useAuth();
+  const { user, ready, offline, retry } = useAuth();
   const data = useData();
 
   let body;
-  if (!ready || !data.ready) {
+  if (offline) {
+    body = <OfflineScreen onRetry={retry} />;
+  } else if (!ready || !data.ready) {
     body = (
       <View style={styles.center}>
         <ActivityIndicator color={colors.primary} size="large" />
@@ -72,6 +76,8 @@ function Root() {
     );
   } else if (!user) {
     body = <AuthScreen />;
+  } else if (data.error && data.donations.length === 0) {
+    body = <OfflineScreen onRetry={data.refresh} />;
   } else {
     // key por usuario: al cambiar de cuenta la navegación vuelve al inicio.
     body = (
@@ -91,24 +97,32 @@ function Root() {
 
 export default function App() {
   return (
-    <ThemeProvider>
-      <I18nProvider>
-        <AuthProvider>
-          <DataProvider>
-            <LocationProvider>
-              <FeedbackProvider>
-                <Root />
-              </FeedbackProvider>
-            </LocationProvider>
-          </DataProvider>
-        </AuthProvider>
-      </I18nProvider>
-    </ThemeProvider>
+    <ErrorBoundary>
+      <ThemeProvider>
+        <I18nProvider>
+          <AuthProvider>
+            <DataProvider>
+              <LocationProvider>
+                <FeedbackProvider>
+                  <Root />
+                </FeedbackProvider>
+              </LocationProvider>
+            </DataProvider>
+          </AuthProvider>
+        </I18nProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 }
 
 const styles = StyleSheet.create({
   outer: { flex: 1, alignItems: 'center' },
-  shell: { flex: 1, width: '100%', maxWidth: 430, overflow: 'hidden', paddingTop: Platform.OS === 'android' ? RNStatusBar.currentHeight || 0 : 0 },
+  shell: {
+    flex: 1,
+    width: '100%',
+    maxWidth: 430,
+    overflow: 'hidden',
+    paddingTop: Platform.OS === 'android' ? RNStatusBar.currentHeight || 0 : 0,
+  },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
 });

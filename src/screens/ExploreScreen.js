@@ -30,7 +30,7 @@ export default function ExploreScreen() {
   const s = useStyles(makeStyles);
   const { colors } = useTheme();
   const { t } = useI18n();
-  const { donations, notifications } = useData();
+  const { donations, notifications, refresh } = useData();
   const loc = useLocation();
   const { go } = useRouter();
   const [filter, setFilter] = useState('all');
@@ -50,7 +50,7 @@ export default function ExploreScreen() {
   );
 
   return (
-    <Screen>
+    <Screen onRefresh={refresh}>
       <Header title={t('explore.title')} subtitle={t('explore.subtitle')} right={<IconButton name="notifications-outline" label={t('notif.title')} dot={notifications.some((n) => !n.read)} onPress={() => go('notifications')} />} />
 
       <View style={s.search}>

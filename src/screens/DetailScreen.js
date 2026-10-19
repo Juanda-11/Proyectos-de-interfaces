@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useStyles, useTheme } from '../theme/ThemeContext';
@@ -50,7 +50,8 @@ export default function DetailScreen() {
   const { user } = useAuth();
   const { donations, reserve } = useData();
   const loc = useLocation();
-  const { toast } = useFeedback();
+  const { toast, toastError } = useFeedback();
+  const [busy, setBusy] = useState(false);
   const { params, go, back } = useRouter();
   const item = donations.find((d) => d.id === params.id);
 
@@ -63,15 +64,22 @@ export default function DetailScreen() {
   const mine = isMine(item, user);
   const qtyValue = item.qty.split(' ')[0];
 
-  const onReserve = () => {
-    reserve(item, user);
-    toast(t('notif.reservedBody', { title: item.title }));
-    go('tracking', { id: item.id });
+  const onReserve = async () => {
+    setBusy(true);
+    try {
+      await reserve(item);
+      toast(t('notif.reservedBody', { title: item.title }));
+      go('tracking', { id: item.id });
+    } catch (e) {
+      toastError(e);
+    } finally {
+      setBusy(false);
+    }
   };
 
   let cta;
   if (item.status === 'available' && user.role === 'receiver') {
-    cta = <Button label={t('detail.reserve')} icon="bookmark-outline" onPress={onReserve} />;
+    cta = <Button label={t('detail.reserve')} icon="bookmark-outline" onPress={onReserve} loading={busy} />;
   } else if (mine || own) {
     cta = <Button label={t('detail.viewTracking')} icon="pulse-outline" onPress={() => go('tracking', { id: item.id })} />;
   } else if (item.status !== 'available') {

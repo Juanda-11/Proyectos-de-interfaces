@@ -1,5 +1,5 @@
 import * as ImageManipulator from 'expo-image-manipulator';
-import { API_BASE } from './config';
+import { api } from './api';
 
 export class AnalysisError extends Error {
   constructor(code, detail) {
@@ -19,30 +19,17 @@ async function prepareImage(uri) {
   return { base64: out.base64, uri: out.uri };
 }
 
+// Envía la foto al backend (/api/analyze, que usa Gemini o Claude) y devuelve el análisis.
 export async function analyzeFood(uri, lang) {
   const { base64 } = await prepareImage(uri);
-  let res;
+  let data;
   try {
-    res = await fetch(`${API_BASE}/api/analyze`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ image: base64, mediaType: 'image/jpeg', lang }),
-    });
+    data = await api.post('/analyze', { image: base64, mediaType: 'image/jpeg', lang });
   } catch (e) {
-    throw new AnalysisError('failed', `network: ${e.message}`);
+    if (e.code === 'ai_not_configured') throw new AnalysisError('unavailable');
+    const detail = [e.code, e.status || '', e.details && e.details.detail].filter(Boolean).join(' · ');
+    throw new AnalysisError('failed', detail);
   }
-  if (res.status === 503) throw new AnalysisError('unavailable');
-  if (!res.ok) {
-    let info = '';
-    try {
-      const body = await res.json();
-      info = [body.error, body.upstreamStatus, body.detail].filter(Boolean).join(' · ');
-    } catch {
-      info = '';
-    }
-    throw new AnalysisError('failed', `HTTP ${res.status}${info ? ` · ${info}` : ''}`);
-  }
-  const data = await res.json();
   if (data.isFood === false) throw new AnalysisError('notFood');
   return data;
 }

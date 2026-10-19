@@ -29,9 +29,6 @@ export async function removeKey(key) {
 export const KEYS = {
   theme: 'foodlink.theme',
   lang: 'foodlink.lang',
-  users: 'foodlink.users',
-  session: 'foodlink.session',
-  donations: 'foodlink.donations.v3',
-  notifications: 'foodlink.notifications.v3',
+  token: 'foodlink.token',
   prefs: 'foodlink.prefs',
 };

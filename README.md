@@ -1,99 +1,66 @@
-# FoodLink 🌱
+# FoodLink 🌱 — Frontend
 
-Aplicación para **reducir el desperdicio de alimentos** conectando a quienes tienen excedentes (donantes) con quienes los necesitan (receptores). Proyecto final de *Diseño de Interfaces*.
+App para **reducir el desperdicio de alimentos** conectando a quienes tienen excedentes (donantes) con quienes los
+necesitan (receptores). Proyecto final de *Diseño de Interfaces*.
 
-Una sola base de código (React Native + Expo) que corre en **iPhone, Android y web**, y se despliega en **Vercel**.
+React Native + Expo: **una sola base de código para web, iPhone y Android**.
+
+> 🔗 El **backend** (API REST, base de datos e IA) está en otro repositorio:
+> [Juanda-11/Proyectos-de-interfaces-MB](https://github.com/Juanda-11/Proyectos-de-interfaces-MB).
+> Arquitectura: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) · Despliegue: [`docs/DEPLOY.md`](docs/DEPLOY.md)
 
 ## Funcionalidades
-
 | Área | Qué hace |
 | --- | --- |
-| **Acceso** | Inicio de sesión con dos perfiles (**Recibir** / **Donar**) y registro con correo. Cuentas demo incluidas. |
-| **Tema** | Claro / oscuro / sistema. Botón rápido en la pantalla de inicio y opción en Configuración. |
-| **Idioma** | Español / English, en el login y en Perfil → Configuración. Se recuerda entre sesiones. |
-| **Análisis con IA** | Toma una foto o súbela de la galería: la IA (Gemini o Claude, visión) identifica el alimento, categoría, cantidad, estado, vida útil, alérgenos y consejos de conservación. El usuario revisa y publica. |
-| **Mapa real** | OpenStreetMap + Leaflet (sin API keys), con tu ubicación, marcadores por estado y detalle al tocar. |
-| **Seguimiento** | Cuatro etapas (publicada → reservada → en camino → entregada) que se muestran **una a una**, con barra animada, etapas futuras bloqueadas y cierre de entrega con **código/QR**. |
-| **Perfil** | Datos personales editables, estadísticas, configuración, seguridad (cambiar contraseña, eliminar cuenta), ayuda con FAQ y cierre de sesión. |
-| **Impacto** | kg recuperados, entregas, aliados, CO₂ evitado, meta mensual y logros — calculados a partir de las entregas reales. |
+| **Acceso** | Dos perfiles (**Recibir** / **Donar**), registro con correo y sesión que se restaura al abrir la app. |
+| **Tema e idioma** | Claro / oscuro / sistema y español / English, con botón rápido en el inicio y opciones en Configuración. |
+| **Análisis con IA** | Foto con la cámara o de la galería: la IA identifica el alimento, categoría, cantidad, estado, vida útil y alérgenos. |
+| **Mapa real** | Leaflet con teselas sin API key y respaldo automático entre proveedores; tu ubicación y marcadores por estado. |
+| **Seguimiento** | Cuatro etapas que se muestran una a una; la entrega se cierra con **código / QR** validado en el servidor. |
+| **Datos compartidos** | Donante y receptor ven lo mismo desde dispositivos distintos (refresco cada 15 s y "tirar para actualizar"). |
+| **Perfil** | Datos editables, estadísticas, configuración, seguridad (contraseña, borrar cuenta), ayuda y cierre de sesión. |
+| **Impacto** | kg recuperados, entregas, aliados, CO₂ evitado, meta mensual y logros. |
 
-### Cuentas de prueba
-
+## Cuentas de prueba
 | Perfil | Correo | Contraseña |
 | --- | --- | --- |
 | Receptor | `receptor@foodlink.app` | `demo1234` |
 | Donante | `donante@foodlink.app` | `demo1234` |
 
-(En el login también hay botones "Demo receptor / Demo donante".)
-
-## ¿Un repo o dos? — Decisión de arquitectura
-
-**Un solo repositorio (monorepo).** El "backend" de FoodLink es una única función serverless (`api/analyze.js`) que protege la clave de la IA; separarla en otro repo solo añadiría fricción (dos despliegues, CORS, versiones). Vercel sirve ambas cosas desde el mismo proyecto:
-
-```
-├── App.js                  # Punto de entrada: proveedores + navegación
-├── src/
-│   ├── theme/              # Paletas claro/oscuro y ThemeContext
-│   ├── i18n/               # Diccionarios es/en y I18nContext
-│   ├── context/            # Auth, datos (donaciones/notificaciones), ubicación
-│   ├── navigation/         # Router por pila
-│   ├── services/           # auth, donaciones, IA (cliente), geo, storage
-│   ├── components/         # UI reutilizable, mapa, barra de etapas...
-│   └── screens/            # Una pantalla por archivo
-├── api/analyze.js          # Backend serverless (Vercel Function) → Claude
-└── vercel.json             # Build de Expo web + rutas
-```
-
-> Si más adelante se quiere un backend con base de datos compartida entre dispositivos (Supabase, Firebase…), solo hay que reemplazar `src/services/auth.js` y la persistencia de `DataContext`; las pantallas no cambian. Ahí sí podría tener sentido separarlo.
+El **código de entrega** de cada donación solo lo ve el donante. Para completar una entrega como receptor, abre la
+donación con la cuenta de donante (muestra el código y un QR) y escríbelo en la cuenta de receptor.
 
 ## Ejecutar en local
+Necesitas el backend corriendo (ver su README: `npm run dev` → `http://localhost:3000`).
 
 ```bash
+cp .env.example .env          # EXPO_PUBLIC_API_URL=http://localhost:3000
 npm install
-npm run web          # navegador
-npm start            # Expo Go (escanea el QR con el iPhone/Android)
+npm run web                   # navegador
+npm start                     # Expo Go en iPhone/Android
 ```
-
-Para probar también el análisis con IA en local necesitas la función `/api/analyze`:
-
-```bash
-cp .env.example .env.local     # y pon tu ANTHROPIC_API_KEY
-npx vercel dev                 # sirve la web + /api juntas
-```
-
-Sin clave de IA la app funciona igual: al escanear, avisa que la IA no está configurada y ofrece el registro manual.
 
 ## Desplegar en Vercel
-
-1. Entra a [vercel.com/new](https://vercel.com/new) e **importa este repositorio de GitHub**.
-2. Vercel lee `vercel.json` automáticamente (build: `npx expo export --platform web`, salida: `dist`). No cambies nada.
-3. En **Settings → Environment Variables** agrega:
-   - **Recomendado (gratis):** `GEMINI_API_KEY` → clave de [Google AI Studio](https://aistudio.google.com/apikey) (plan gratuito con visión).
-   - *Alternativa de pago:* `ANTHROPIC_API_KEY` → clave de [console.anthropic.com](https://console.anthropic.com).
-   - Si están las dos se usa Gemini; se puede forzar con `AI_PROVIDER=gemini` o `anthropic`. Opcionales: `GEMINI_MODEL`, `ANTHROPIC_MODEL`.
-   - Las claves solo viven en el servidor (nunca en el navegador ni en el repositorio). Tras agregarlas, haz **Redeploy**.
-   - Comprueba abriendo `https://TU-APP.vercel.app/api/analyze`: debe mostrar `"configured": true` y el proveedor.
-4. **Deploy**. Cada `git push` a la rama principal redepliega; las ramas y PR generan *preview deployments*.
-
-### App en el celular apuntando al despliegue
-
-Para que Expo Go / un build nativo use la IA desplegada, define la URL pública:
-
-```bash
-EXPO_PUBLIC_API_URL=https://tu-proyecto.vercel.app npm start
-```
-
-## Notas técnicas
-
-- **Cuentas y datos**: se guardan en el dispositivo (AsyncStorage / localStorage) con contraseñas cifradas (SHA-256 + sal). Es adecuado para la demostración académica; para producción real se debe usar un backend de autenticación.
-- **Privacidad de las fotos**: la imagen se reduce en el dispositivo, se envía a `/api/analyze` y no se almacena; solo se guarda una miniatura en la donación.
-- **Mapa**: teselas de Esri (principal), CARTO y OpenStreetMap como respaldo automático, sin API key (claro y oscuro). Requiere conexión a internet.
-- **Accesibilidad**: roles y etiquetas ARIA en botones, pestañas y campos; contraste revisado en ambos temas.
+1. Despliega primero el backend y copia su URL.
+2. Importa este repositorio en Vercel y agrega `EXPO_PUBLIC_API_URL` con esa URL.
+3. Deploy. Detalles y solución de problemas en [`docs/DEPLOY.md`](docs/DEPLOY.md).
 
 ## Scripts
-
 | Comando | Descripción |
 | --- | --- |
-| `npm run web` | Servidor de desarrollo web |
-| `npm start` | Expo (móvil) |
-| `npm run build` | Genera `dist/` (lo mismo que ejecuta Vercel) |
+| `npm run web` / `npm start` | Servidor de desarrollo (web / móvil) |
+| `npm run build` | Genera `dist/` (lo que ejecuta Vercel) |
+| `npm run lint` | ESLint |
+| `npm test` | Pruebas con Jest |
+| `npm run format` | Prettier |
+
+## Estructura
+```
+App.js                 Proveedores, sesión y navegación
+src/services/          Cliente de la API, sesión, auth, donaciones, IA, errores
+src/context/           Auth, Data (refresco periódico), Location
+src/screens/           Una pantalla por archivo
+src/components/        UI reutilizable (ui/), mapa, barra de etapas, ErrorBoundary
+src/i18n · src/theme/  Textos es/en y paletas claro/oscuro
+__tests__/             Jest: cliente API, auth, datos, i18n, utilidades...
+```
