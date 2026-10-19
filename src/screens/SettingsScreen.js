@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { StyleSheet, Switch, Text, View } from 'react-native';
 import { useStyles, useTheme } from '../theme/ThemeContext';
 import { useI18n } from '../i18n/I18nContext';
+import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
 import { useRouter } from '../navigation/Router';
 import { KEYS, loadJSON, saveJSON } from '../services/storage';
@@ -23,7 +24,8 @@ export default function SettingsScreen() {
   const { colors, preference, setPreference } = useTheme();
   const { t, lang, setLang } = useI18n();
   const { resetDemo } = useData();
-  const { confirm, toast } = useFeedback();
+  const { confirm, toast, toastError } = useFeedback();
+  const { user } = useAuth();
   const { back } = useRouter();
   const [prefs, setPrefs] = useState({ push: true, weekly: false });
 
@@ -36,7 +38,13 @@ export default function SettingsScreen() {
 
   const reset = async () => {
     const ok = await confirm({ title: t('settings.resetAsk'), body: t('settings.resetBody'), confirmLabel: t('settings.reset'), danger: true });
-    if (ok) { resetDemo(); toast(t('settings.resetDone')); }
+    if (!ok) return;
+    try {
+      await resetDemo();
+      toast(t('settings.resetDone'));
+    } catch (e) {
+      toastError(e);
+    }
   };
 
   const switchProps = { trackColor: { false: colors.line, true: colors.green2 }, thumbColor: '#fff' };
@@ -85,7 +93,9 @@ export default function SettingsScreen() {
       </Card>
 
       <Text style={s.group}>{t('settings.about').toUpperCase()}</Text>
-      <Button variant="secondary" icon="refresh-outline" label={t('settings.reset')} onPress={reset} />
+      {user.email.endsWith('@foodlink.app') ? (
+        <Button variant="secondary" icon="refresh-outline" label={t('settings.reset')} onPress={reset} />
+      ) : null}
       <Text style={s.about}>{t('profile.version')}</Text>
     </Screen>
   );
