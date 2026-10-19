@@ -25,6 +25,7 @@ import SettingsScreen from './src/screens/SettingsScreen';
 import PersonalScreen from './src/screens/PersonalScreen';
 import SecurityScreen from './src/screens/SecurityScreen';
 import HelpScreen from './src/screens/HelpScreen';
+import OfflineScreen from './src/screens/OfflineScreen';
 
 const SCREENS = {
   home: HomeScreen,
@@ -60,11 +61,13 @@ function Routes() {
 
 function Root() {
   const { colors, mode } = useTheme();
-  const { user, ready } = useAuth();
+  const { user, ready, offline, retry } = useAuth();
   const data = useData();
 
   let body;
-  if (!ready || !data.ready) {
+  if (offline) {
+    body = <OfflineScreen onRetry={retry} />;
+  } else if (!ready || !data.ready) {
     body = (
       <View style={styles.center}>
         <ActivityIndicator color={colors.primary} size="large" />
@@ -72,6 +75,8 @@ function Root() {
     );
   } else if (!user) {
     body = <AuthScreen />;
+  } else if (data.error && data.donations.length === 0) {
+    body = <OfflineScreen onRetry={data.refresh} />;
   } else {
     // key por usuario: al cambiar de cuenta la navegación vuelve al inicio.
     body = (
