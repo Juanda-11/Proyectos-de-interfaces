@@ -11,7 +11,8 @@
     "build": "expo export --platform web",
     "test": "jest",
     "lint": "eslint src App.js",
-    "format": "prettier --write \"src/**/*.js\" App.js"
+    "format": "prettier --write \"src/**/*.js\" App.js",
+    "build:apk": "eas build --platform android --profile preview"
   },
   "dependencies": {
     "@expo/metro-runtime": "~57.0.16",
